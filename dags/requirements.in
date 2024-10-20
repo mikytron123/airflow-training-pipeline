@@ -1,0 +1,7 @@
+apache-airflow==2.10.2
+pandas
+scikit-learn
+minio
+mlflow
+joblib
+scipy
