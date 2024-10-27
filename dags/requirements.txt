@@ -6,7 +6,7 @@
 #
 aiohappyeyeballs==2.4.3
     # via aiohttp
-aiohttp==3.10.8
+aiohttp==3.10.10
     # via apache-airflow-providers-http
 aiosignal==1.3.1
     # via aiohttp
@@ -14,11 +14,16 @@ alembic==1.13.3
     # via
     #   apache-airflow
     #   mlflow
-anyio==4.6.0
+amqp==5.2.0
+    # via
+    #   apache-airflow
+    #   kombu
+anyio==4.6.2.post1
     # via httpx
-apache-airflow==2.10.2
+apache-airflow[celery,postgres,rabbitmq]==2.10.2
     # via
     #   -r requirements.in
+    #   apache-airflow-providers-celery
     #   apache-airflow-providers-common-compat
     #   apache-airflow-providers-common-io
     #   apache-airflow-providers-common-sql
@@ -26,17 +31,23 @@ apache-airflow==2.10.2
     #   apache-airflow-providers-ftp
     #   apache-airflow-providers-http
     #   apache-airflow-providers-imap
+    #   apache-airflow-providers-postgres
     #   apache-airflow-providers-smtp
     #   apache-airflow-providers-sqlite
-apache-airflow-providers-common-compat==1.2.0
+apache-airflow-providers-celery==3.8.3
     # via apache-airflow
-apache-airflow-providers-common-io==1.4.1
-    # via apache-airflow
-apache-airflow-providers-common-sql==1.17.1
+apache-airflow-providers-common-compat==1.2.1
     # via
     #   apache-airflow
+    #   apache-airflow-providers-fab
+apache-airflow-providers-common-io==1.4.2
+    # via apache-airflow
+apache-airflow-providers-common-sql==1.18.0
+    # via
+    #   apache-airflow
+    #   apache-airflow-providers-postgres
     #   apache-airflow-providers-sqlite
-apache-airflow-providers-fab==1.4.0
+apache-airflow-providers-fab==1.4.1
     # via apache-airflow
 apache-airflow-providers-ftp==3.11.1
     # via apache-airflow
@@ -44,13 +55,15 @@ apache-airflow-providers-http==4.13.1
     # via apache-airflow
 apache-airflow-providers-imap==3.7.0
     # via apache-airflow
+apache-airflow-providers-postgres==5.13.1
+    # via apache-airflow
 apache-airflow-providers-smtp==1.8.0
     # via apache-airflow
 apache-airflow-providers-sqlite==3.9.0
     # via apache-airflow
-apispec[yaml]==6.6.1
+apispec[yaml]==6.7.0
     # via flask-appbuilder
-argcomplete==3.5.0
+argcomplete==3.5.1
     # via apache-airflow
 argon2-cffi==23.1.0
     # via minio
@@ -68,6 +81,8 @@ attrs==24.2.0
     #   referencing
 babel==2.16.0
     # via flask-babel
+billiard==4.2.1
+    # via celery
 blinker==1.8.2
     # via apache-airflow
 cachelib==0.9.0
@@ -78,6 +93,10 @@ cachetools==5.5.0
     # via
     #   google-auth
     #   mlflow-skinny
+celery[redis]==5.4.0
+    # via
+    #   apache-airflow-providers-celery
+    #   flower
 certifi==2024.8.30
     # via
     #   httpcore
@@ -92,10 +111,20 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via
+    #   celery
+    #   click-didyoumean
+    #   click-plugins
+    #   click-repl
     #   clickclick
     #   flask
     #   flask-appbuilder
     #   mlflow-skinny
+click-didyoumean==0.3.1
+    # via celery
+click-plugins==1.1.1
+    # via celery
+click-repl==0.3.0
+    # via celery
 clickclick==20.10.2
     # via connexion
 cloudpickle==3.1.0
@@ -112,9 +141,9 @@ contourpy==1.3.0
     # via matplotlib
 cron-descriptor==1.4.5
     # via apache-airflow
-croniter==3.0.3
+croniter==3.0.4
     # via apache-airflow
-cryptography==43.0.1
+cryptography==43.0.3
     # via apache-airflow
 cycler==0.12.1
     # via matplotlib
@@ -130,12 +159,10 @@ deprecated==1.2.14
     #   opentelemetry-semantic-conventions
 dill==0.3.9
     # via apache-airflow
-dnspython==2.6.1
+dnspython==2.7.0
     # via email-validator
 docker==7.1.0
     # via mlflow
-docutils==0.21.2
-    # via python-daemon
 email-validator==2.2.0
     # via flask-appbuilder
 flask==2.2.5
@@ -171,17 +198,19 @@ flask-session==0.5.0
     # via apache-airflow
 flask-sqlalchemy==2.5.1
     # via flask-appbuilder
-flask-wtf==1.2.1
+flask-wtf==1.2.2
     # via
     #   apache-airflow
     #   flask-appbuilder
+flower==2.0.1
+    # via apache-airflow-providers-celery
 fonttools==4.54.1
     # via matplotlib
-frozenlist==1.4.1
+frozenlist==1.5.0
     # via
     #   aiohttp
     #   aiosignal
-fsspec==2024.9.0
+fsspec==2024.10.0
     # via
     #   apache-airflow
     #   universal-pathlib
@@ -194,6 +223,7 @@ google-auth==2.35.0
 google-re2==1.1.20240702
     # via
     #   apache-airflow
+    #   apache-airflow-providers-celery
     #   apache-airflow-providers-fab
 googleapis-common-protos==1.65.0
     # via
@@ -209,7 +239,7 @@ graphql-relay==3.2.0
     # via graphene
 greenlet==3.1.1
     # via sqlalchemy
-grpcio==1.66.2
+grpcio==1.67.0
     # via opentelemetry-exporter-otlp-proto-grpc
 gunicorn==23.0.0
     # via
@@ -219,8 +249,10 @@ h11==0.14.0
     # via httpcore
 httpcore==1.0.6
     # via httpx
-httpx==0.27.0
+httpx==0.27.2
     # via apache-airflow
+humanize==4.11.0
+    # via flower
 idna==3.10
     # via
     #   anyio
@@ -260,10 +292,12 @@ jsonschema==4.23.0
     #   apache-airflow
     #   connexion
     #   flask-appbuilder
-jsonschema-specifications==2023.12.1
+jsonschema-specifications==2024.10.1
     # via jsonschema
 kiwisolver==1.4.7
     # via matplotlib
+kombu==5.4.2
+    # via celery
 lazy-object-proxy==1.10.0
     # via apache-airflow
 limits==3.13.0
@@ -290,7 +324,7 @@ markupsafe==2.1.5
     #   mako
     #   werkzeug
     #   wtforms
-marshmallow==3.22.0
+marshmallow==3.23.0
     # via
     #   flask-appbuilder
     #   marshmallow-oneofschema
@@ -385,13 +419,21 @@ pluggy==1.5.0
     # via apache-airflow
 prison==0.2.1
     # via flask-appbuilder
+prometheus-client==0.21.0
+    # via flower
+prompt-toolkit==3.0.48
+    # via click-repl
+propcache==0.2.0
+    # via yarl
 protobuf==4.25.5
     # via
     #   googleapis-common-protos
     #   mlflow-skinny
     #   opentelemetry-proto
-psutil==6.0.0
+psutil==6.1.0
     # via apache-airflow
+psycopg2-binary==2.9.10
+    # via apache-airflow-providers-postgres
 pyarrow==17.0.0
     # via mlflow
 pyasn1==0.6.1
@@ -415,11 +457,12 @@ pyjwt==2.9.0
     #   flask-jwt-extended
 pyparsing==3.2.0
     # via matplotlib
-python-daemon==3.0.1
+python-daemon==3.1.0
     # via apache-airflow
 python-dateutil==2.9.0.post0
     # via
     #   apache-airflow
+    #   celery
     #   croniter
     #   flask-appbuilder
     #   matplotlib
@@ -436,6 +479,7 @@ pytz==2024.2
     # via
     #   croniter
     #   flask-babel
+    #   flower
     #   pandas
 pyyaml==6.0.2
     # via
@@ -443,6 +487,8 @@ pyyaml==6.0.2
     #   clickclick
     #   connexion
     #   mlflow-skinny
+redis==5.2.0
+    # via celery
 referencing==0.35.1
     # via
     #   jsonschema
@@ -463,7 +509,7 @@ requests-toolbelt==1.0.0
     #   apache-airflow-providers-http
 rfc3339-validator==0.1.4
     # via apache-airflow
-rich==13.9.1
+rich==13.9.3
     # via
     #   apache-airflow
     #   flask-limiter
@@ -519,16 +565,18 @@ sqlparse==0.5.1
     #   mlflow-skinny
 tabulate==0.9.0
     # via apache-airflow
-tenacity==8.5.0
+tenacity==9.0.0
     # via apache-airflow
-termcolor==2.4.0
+termcolor==2.5.0
     # via apache-airflow
 text-unidecode==1.3
     # via python-slugify
 threadpoolctl==3.5.0
     # via scikit-learn
-time-machine==2.15.0
+time-machine==2.16.0
     # via pendulum
+tornado==6.4.1
+    # via flower
 typing-extensions==4.12.2
     # via
     #   alembic
@@ -539,6 +587,8 @@ typing-extensions==4.12.2
     #   opentelemetry-sdk
 tzdata==2024.2
     # via
+    #   celery
+    #   kombu
     #   pandas
     #   pendulum
 uc-micro-py==1.0.3
@@ -552,6 +602,13 @@ urllib3==2.2.3
     #   docker
     #   minio
     #   requests
+vine==5.1.0
+    # via
+    #   amqp
+    #   celery
+    #   kombu
+wcwidth==0.2.13
+    # via prompt-toolkit
 werkzeug==2.2.3
     # via
     #   apache-airflow
@@ -564,11 +621,11 @@ wirerope==0.4.7
     # via methodtools
 wrapt==1.16.0
     # via deprecated
-wtforms==3.1.2
+wtforms==3.2.1
     # via
     #   flask-appbuilder
     #   flask-wtf
-yarl==1.13.1
+yarl==1.16.0
     # via aiohttp
 zipp==3.20.2
     # via importlib-metadata

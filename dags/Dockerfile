@@ -1,4 +1,4 @@
-FROM apache/airflow:2.10.2
+FROM apache/airflow:slim-2.10.2-python3.11
 
 ARG AIRFLOW_VERSION=2.10.2
 # Prevents Python from writing pyc files.
@@ -16,7 +16,7 @@ COPY . .
 # into this layer.
 RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=requirements.txt,target=requirements.txt \
-    python -m pip install apache-airflow==${AIRFLOW_VERSION} -r requirements.txt
+    python -m pip install -r requirements.txt
 
 
 
