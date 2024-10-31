@@ -2,6 +2,6 @@ apache-airflow[postgres,rabbitmq,celery]==2.10.2
 pandas
 scikit-learn
 minio
-mlflow
+mlflow-skinny
 joblib
 scipy

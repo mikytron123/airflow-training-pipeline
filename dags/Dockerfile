@@ -1,5 +1,5 @@
 FROM apache/airflow:slim-2.10.2-python3.11
-
+USER root
 ARG AIRFLOW_VERSION=2.10.2
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -8,8 +8,14 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # the application crashes without emitting any logs due to buffering.
 ENV PYTHONUNBUFFERED=1
 
-COPY . .
+ENV MPLCONFIGDIR=/tmp/matplotlib
 
+RUN apt-get update -y && apt-get install -y git
+
+ENV GIT_PYTHON_REFRESH=quiet
+
+COPY . .
+USER airflow
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
 # Leverage a bind mount to requirements.txt to avoid having to copy them into

@@ -8,8 +8,8 @@ x-airflow-common:
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
-    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow_user:airflow_pass@postgres/airflow
+    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow_user:airflow_pass@postgres/airflow
     AIRFLOW__CELERY__BROKER_URL: amqp://celery:celery@rabbitmq:5672/celery_host
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
@@ -20,7 +20,6 @@ x-airflow-common:
     # See https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html#scheduler-health-check-server
     # yamllint enable rule:line-length
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
-    AIRFLOW__CORE__ALLOWED_DESERIALIZATION_CLASSES: 'llama_index.core.schema.Document'
     # The following line can be used to set a custom config file, stored in the local config folder
     # If you want to use it, outcomment it and replace airflow.cfg with the name of your config file
     # AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
@@ -44,20 +43,22 @@ services:
   postgres:
     image: postgres:latest
     environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-      POSTGRES_DB: airflow
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_pass
+      POSTGRES_DB: postgres
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
+      - ./postgres/entrypoint.sh:/docker-entrypoint-initdb.d/init-db.sh
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "airflow"]
+      test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 10s
       retries: 5
       start_period: 5s
     restart: always
 
   rabbitmq:
-    image: rabbitmq:latest
+    build: ./rabbitmq
+    # image: rabbitmq:latest
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
@@ -66,9 +67,9 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: rabbitmq
       RABBITMQ_DEFAULT_PASS: rabbitmq
-    volumes:
-      - ./rabbitmq/rabbit_entrypoint.sh:/entrypoint.sh
-    entrypoint: ["/usr/bin/bash", "/entrypoint.sh"]
+    # volumes:
+    #   - ./rabbitmq/rabbit_entrypoint.sh:/entrypoint.sh
+    # entrypoint: ["/usr/bin/bash", "/entrypoint.sh"]
     ports:
     - 5672:5672
     - 15672:15672
@@ -212,21 +213,44 @@ services:
       - ${AIRFLOW_PROJ_DIR:-.}:/sources
   
   minio:
+    build: ./minio
     ports:
         - ${MINIO_PORT}:${MINIO_PORT}
         - 9001:9001
     container_name: minio1
     env_file:
       - .env
-    # environment:
-    #     - MINIO_ROOT_USER=minio
-    #     - MINIO_ROOT_PASSWORD=minio123
     volumes:
-        - ./minio/data:/data
-        - ./minio/minio-entrypoint.sh:/usr/bin/minio-entrypoint.sh
-    image: quay.io/minio/minio
-    entrypoint: ["sh", "/usr/bin/minio-entrypoint.sh"]
+        - minio_data:/data
+    #     - ./minio/minio-entrypoint.sh:/usr/bin/minio-entrypoint.sh
+    # image: quay.io/minio/minio
+    # entrypoint: ["sh", "/usr/bin/minio-entrypoint.sh"]
     # command: server /data --console-address ":9001"
+  
+  mlflow:
+    build: ./mlflow
+    # image: ghcr.io/mlflow/mlflow:v2.17.1
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    ports:
+      - "5000:5000"
+    environment:
+      - AWS_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - AWS_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+      - MLFLOW_S3_IGNORE_TLS=true
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://mlflow_user:mlflow_pass@postgres/mlflow
+      --host 0.0.0.0
+      --serve-artifacts
+      --artifacts-destination s3://mlflow
 
 volumes:
   postgres-db-volume:
+  minio_data:
